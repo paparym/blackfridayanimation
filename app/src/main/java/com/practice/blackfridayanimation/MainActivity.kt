@@ -2,11 +2,8 @@ package com.practice.blackfridayanimation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.compose.animation.core.animate
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -17,20 +14,39 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
         val recycler = findViewById<RecyclerView>(R.id.recyclerView)
 
-        ticketsAdapter = TicketsAdapter()
+        ticketsAdapter = TicketsAdapter(lifecycleScope)
         recycler.adapter = ticketsAdapter
         ticketsAdapter.submitList(
             listOf(
-                1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+                TicketRow(
+                    spanIndex = 0,
+                    ticketList = listOf(
+                        Ticket(1),
+                        Ticket(2),
+                        Ticket(3),
+                        Ticket(4),
+                        Ticket(5),
+                        Ticket(6),
+                        Ticket(7),
+                        Ticket(8)
+                    )
+                ),
+                TicketRow(
+                    spanIndex = 1,
+                    ticketList = listOf(
+                        Ticket(7),
+                        Ticket(8)
+                    )
+                )
             )
         )
-        lifecycleScope.launch {
-            delay(100)
-            recycler.x = -recycler.width.toFloat()
-            recycler.animate()
-                .setDuration(3000)
-                .translationX(0f)
-                .start()
-        }
+//        lifecycleScope.launch {
+//            delay(100)
+//            recycler.x = -recycler.width.toFloat()
+//            recycler.animate()
+//                .setDuration(3000)
+//                .translationX(0f)
+//                .start()
+//        }
     }
 }
