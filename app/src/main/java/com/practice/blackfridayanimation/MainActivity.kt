@@ -7,23 +7,23 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.practice.blackfridayanimation.ui.theme.BlackfridayanimationTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -32,8 +32,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val itemList = mutableListOf<Person>()
-            repeat(600) {
-                itemList.add(Person(firstName = "Mark:$it", age = it))
+            repeat(8) {
+                itemList.add(Person(firstName = "$it", age = it + 1))
             }
 
             var personList by remember {
@@ -64,33 +64,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun ComposeGrid() {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-//        drawRect(
-//            color = Color.Blue,
-//            topLeft = Offset.,
-//            size = 40f
-//        )
-//        drawArc(
-//            color = Color.Green,
-//            startAngle = -90f,
-//            sweepAngle = 360 * currPercentage,
-//            useCenter = false,
-//            style = Stroke(
-//                width = 5.dp.toPx(),
-//                cap = StrokeCap.Round
-//            )
-//        )
-    }
-    Box(
-        modifier = Modifier
-            .padding(4.dp)
-            .background(Color.Blue)
-            .size(width = 54.dp, height = 82.dp)
-    )
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun JustGrid(
@@ -104,12 +77,20 @@ fun JustGrid(
     val itemHeight = 82.dp
     LazyColumn {
         items(personList.chunked(6)) { list ->
-//            val newList = if (list.size == 6) personList else list
+            val newList = if (list.size == 6) personList else list
+            val rowWidth = ((itemWidth * (newList.size)))
+            val scrollState = rememberLazyListState()
+            LaunchedEffect(Unit) {
+                val indexOfLast = list.lastIndexOf(list.last())
+                scrollState.scrollToItem(indexOfLast)
+//                scrollState.scrollToItem(0)
+            }
             LazyRow(
-//                modifier = Modifier.requiredWidth((newList.size * itemWidth.value).dp),
+                state = scrollState,
+//                modifier = Modifier.requiredWidth(rowWidth),
                 userScrollEnabled = false
             ) {
-                items(items = list, key = { it.age }) {
+                items(items = newList, key = { it.age }) {
                     val alphaAnimation = remember { Animatable(0f) }
                     var startAnimation by remember { mutableStateOf(false) }
                     val defaultOffset = -(itemWidth * (tabCount + 1) + itemWidth)
@@ -122,6 +103,7 @@ fun JustGrid(
                     )
                     LaunchedEffect(Unit) {
                         launch {
+                            delay(500)
                             startAnimation = true
                         }
                         launch {
@@ -137,12 +119,12 @@ fun JustGrid(
                         modifier = Modifier
                             .padding(4.dp)
                             .offset(x = offsetX)
-                            .alpha(alphaAnimation.value)
+//                            .alpha(alphaAnimation.value)
                             .animateItemPlacement()
                             .background(Color.Gray)
                             .requiredSize(width = itemWidth, height = itemHeight)
                     ) {
-                        Text(text = "${it.firstName} ${it.age}")
+                        Text(text = "${it.age}")
                     }
                 }
             }
