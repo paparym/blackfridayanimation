@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.animation.LinearInterpolator
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
@@ -36,7 +35,7 @@ class MainActivity : ComponentActivity() {
         ticketsAdapter = TicketsAdapter(lifecycleScope)
         recycler.adapter = ticketsAdapter
         lifecycleScope.launch {
-            repeat(30) {
+            repeat(100) {
                 val newList = ArrayList(ticketList)
                 newList.add(0, Ticket(id = it))
                 ticketList = newList
@@ -76,6 +75,58 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         return true
     }
 
+    override fun animateMove(
+        holder: RecyclerView.ViewHolder,
+        fromXParent: Int,
+        fromYParent: Int,
+        toX: Int,
+        toY: Int
+    ): Boolean {
+        var fromX = fromXParent
+        var fromY = fromYParent
+        val view = holder.itemView
+        fromX += holder.itemView.translationX.toInt()
+        fromY += holder.itemView.translationY.toInt()
+
+        val deltaX = toX - fromX
+        val deltaY = toY - fromY
+        if (deltaX == 0 && deltaY == 0) {
+            dispatchMoveFinished(holder)
+            return false
+        }
+        if (deltaX != 0) {
+            view.translationX = -deltaX.toFloat()
+        }
+        if (deltaY != 0) {
+            view.translationY = -deltaY.toFloat()
+        }
+
+        view.x = fromX.toFloat()
+        view.y = fromY.toFloat()
+        holder.itemView
+            .animate()
+            .setInterpolator(LinearInterpolator())
+            .translationXBy(toX - fromX.toFloat())
+            .translationYBy(toY - fromY.toFloat())
+            .setDuration(DEFAULT_DURATION)
+            .setListener(
+                object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animator: Animator) {
+                        dispatchAddStarting(holder)
+                    }
+
+                    override fun onAnimationEnd(animator: Animator) {
+                        view.x = toX.toFloat()
+                        view.y = toY.toFloat()
+                        holder.itemView.animate().setListener(null)
+                        dispatchAddFinished(holder)
+                    }
+                }
+            ).start()
+
+        return false
+    }
+
     override fun getAddDuration() = DEFAULT_DURATION
     override fun getMoveDuration() = DEFAULT_DURATION
 
@@ -83,4 +134,4 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         dp * (context.resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
 }
 
-private const val DEFAULT_DURATION = 1000L
+private const val DEFAULT_DURATION = 2000L
