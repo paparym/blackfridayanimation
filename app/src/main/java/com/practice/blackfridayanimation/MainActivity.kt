@@ -3,6 +3,7 @@ package com.practice.blackfridayanimation
 import android.content.Context
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.view.View
 import android.view.animation.LinearInterpolator
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
@@ -49,10 +50,10 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
     private val defaultPadding = convertDpToPixel(4f, context) * 2
 
     override fun animateAdd(holder: RecyclerView.ViewHolder): Boolean {
-        holder.itemView.x = -holder.itemView.width.toFloat() - defaultPadding
-        holder.itemView.alpha = 0f
-
         val view = holder.itemView
+        view.x = -view.width.toFloat() - defaultPadding
+        view.alpha = 0f
+
         val animation = view.animate()
         animation
             .alpha(1f)
@@ -71,21 +72,24 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         toX: Int,
         toY: Int
     ): Boolean {
+        val view = holder.itemView
+        var fromX = fromXParent
+        fromX += view.translationX.toInt()
+
         return if (holder.layoutPosition % 6 == 0 && holder.layoutPosition != 0) {
-            handleItemRowChange(holder, fromXParent, fromYParent, toX, toY)
+            handleItemRowChange(view, fromX, fromYParent, toX, toY)
         } else {
-            handleItemMove(holder, fromXParent, fromYParent, toX, toY)
+            handleItemMove(view, fromX, fromYParent, toX)
         }
     }
 
     private fun handleItemRowChange(
-        holder: RecyclerView.ViewHolder,
+        view: View,
         fromX: Int,
         fromY: Int,
         toX: Int,
         toY: Int
     ): Boolean {
-        val view = holder.itemView
         view.x = fromX.toFloat()
         view.y = fromY.toFloat()
         view.animate()
@@ -95,48 +99,31 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
             .setDuration(DEFAULT_DURATION)
             .withEndAction {
                 view.y = toY.toFloat()
-                view.x = toX.toFloat()
+                view.x = -view.width + defaultPadding * 2
                 view.alpha = 1f
-            }.start()
+            }
+            .start()
         return false
     }
 
     private fun handleItemMove(
-        holder: RecyclerView.ViewHolder,
+        view: View,
         fromX: Int,
         fromY: Int,
-        toX: Int,
-        toY: Int
+        toX: Int
     ): Boolean {
-        var fromX = fromX
-        val view = holder.itemView
-        fromX += view.translationX.toInt()
-
-        val deltaX = toX - fromX
-        if (deltaX == 0) {
-            dispatchMoveFinished(holder)
-            return false
-        } else {
-            view.translationX = -deltaX.toFloat()
-        }
         view.x = fromX.toFloat()
         view.y = fromY.toFloat()
         view.animate()
             .setInterpolator(LinearInterpolator())
             .translationXBy(toX - fromX.toFloat())
             .setDuration(DEFAULT_DURATION)
-            .withEndAction {
-                view.y = toY.toFloat()
-                view.x = toX.toFloat()
-            }.start()
-        return true
+            .start()
+        return false
     }
-
-    override fun getAddDuration() = DEFAULT_DURATION
-    override fun getMoveDuration() = DEFAULT_DURATION
 
     private fun convertDpToPixel(dp: Float, context: Context) =
         dp * (context.resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
 }
 
-private const val DEFAULT_DURATION = 2000L
+private const val DEFAULT_DURATION = 1000L
