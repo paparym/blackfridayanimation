@@ -7,7 +7,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:spanCount="6"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         android:orientation="vertical"
         android:layout_height="match_parent"/>
 
