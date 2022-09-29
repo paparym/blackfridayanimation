@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
         ticketsAdapter = TicketsAdapter(lifecycleScope)
         recycler.adapter = ticketsAdapter
         lifecycleScope.launch {
-            repeat(5) {
+            repeat(30) {
                 val newList = ArrayList(ticketList)
                 newList.add(0, Ticket(id = it))
                 ticketList = newList
@@ -64,12 +64,10 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
             .translationXBy(holder.itemView.width.toFloat() + defaultPadding * 2)
             .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animator: Animator) {
-                    Log.d("-->", "start")
                     dispatchAddStarting(holder)
                 }
 
                 override fun onAnimationEnd(animator: Animator) {
-                    Log.d("-->", "end")
                     animation.setListener(null)
                     dispatchAddFinished(holder)
                 }
