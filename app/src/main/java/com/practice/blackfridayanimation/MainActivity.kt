@@ -1,7 +1,5 @@
 package com.practice.blackfridayanimation
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.os.Bundle
 import android.util.DisplayMetrics
@@ -58,19 +56,10 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         val animation = view.animate()
         animation
             .alpha(1f)
-            .setDuration(addDuration)
+            .setDuration(DEFAULT_DURATION)
             .setInterpolator(LinearInterpolator())
             .translationXBy(holder.itemView.width.toFloat() + defaultPadding * 2)
-            .setListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animator: Animator) {
-                    dispatchAddStarting(holder)
-                }
-
-                override fun onAnimationEnd(animator: Animator) {
-                    animation.setListener(null)
-                    dispatchAddFinished(holder)
-                }
-            }).start()
+            .start()
 
         return true
     }
@@ -82,49 +71,65 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         toX: Int,
         toY: Int
     ): Boolean {
-        var fromX = fromXParent
-        var fromY = fromYParent
+        return if (holder.layoutPosition % 6 == 0 && holder.layoutPosition != 0) {
+            handleItemRowChange(holder, fromXParent, fromYParent, toX, toY)
+        } else {
+            handleItemMove(holder, fromXParent, fromYParent, toX, toY)
+        }
+    }
+
+    private fun handleItemRowChange(
+        holder: RecyclerView.ViewHolder,
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int
+    ): Boolean {
         val view = holder.itemView
-        fromX += holder.itemView.translationX.toInt()
-        fromY += holder.itemView.translationY.toInt()
-
-        val deltaX = toX - fromX
-        val deltaY = toY - fromY
-        if (deltaX == 0 && deltaY == 0) {
-            dispatchMoveFinished(holder)
-            return false
-        }
-        if (deltaX != 0) {
-            view.translationX = -deltaX.toFloat()
-        }
-        if (deltaY != 0) {
-            view.translationY = -deltaY.toFloat()
-        }
-
         view.x = fromX.toFloat()
         view.y = fromY.toFloat()
-        holder.itemView
-            .animate()
+        view.animate()
+            .setInterpolator(LinearInterpolator())
+            .translationXBy(view.width + defaultPadding * 2)
+            .alpha(0.5f)
+            .setDuration(DEFAULT_DURATION)
+            .withEndAction {
+                view.y = toY.toFloat()
+                view.x = toX.toFloat()
+                view.alpha = 1f
+            }.start()
+        return false
+    }
+
+    private fun handleItemMove(
+        holder: RecyclerView.ViewHolder,
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int
+    ): Boolean {
+        var fromX = fromX
+        val view = holder.itemView
+        fromX += view.translationX.toInt()
+
+        val deltaX = toX - fromX
+        if (deltaX == 0) {
+            dispatchMoveFinished(holder)
+            return false
+        } else {
+            view.translationX = -deltaX.toFloat()
+        }
+        view.x = fromX.toFloat()
+        view.y = fromY.toFloat()
+        view.animate()
             .setInterpolator(LinearInterpolator())
             .translationXBy(toX - fromX.toFloat())
-            .translationYBy(toY - fromY.toFloat())
             .setDuration(DEFAULT_DURATION)
-            .setListener(
-                object : AnimatorListenerAdapter() {
-                    override fun onAnimationStart(animator: Animator) {
-                        dispatchAddStarting(holder)
-                    }
-
-                    override fun onAnimationEnd(animator: Animator) {
-                        view.x = toX.toFloat()
-                        view.y = toY.toFloat()
-                        holder.itemView.animate().setListener(null)
-                        dispatchAddFinished(holder)
-                    }
-                }
-            ).start()
-
-        return false
+            .withEndAction {
+                view.y = toY.toFloat()
+                view.x = toX.toFloat()
+            }.start()
+        return true
     }
 
     override fun getAddDuration() = DEFAULT_DURATION
