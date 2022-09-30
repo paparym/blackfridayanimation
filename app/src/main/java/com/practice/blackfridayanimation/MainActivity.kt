@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
     private var animationState = TicketsAnimation.IN_PROGRESS
 
     private var ticketList = mutableListOf<Ticket>()
-    private val dataFromApi = data10
+    private val dataFromApi = data100
     var job: Job? = null
 
     private val binding by viewBinding(ActivityMainBinding::bind)
@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
         job?.cancel()
         job = lifecycleScope.launch {
             dataFromApi.forEach { ticket ->
+                layoutManager.scrollToPosition(0)
                 addTicket(ticket)
                 delay(DEFAULT_DURATION)
                 updateTicketsCounted()
