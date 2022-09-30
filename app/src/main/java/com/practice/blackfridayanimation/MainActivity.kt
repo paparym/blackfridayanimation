@@ -91,16 +91,17 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun fadeAndChangeText(view: TextView, newText: String) {
-        val animatorSet = AnimatorSet()
-        val alphaDown = ObjectAnimator.ofFloat(view, View.ALPHA, 1f, 0f)
-        val alphaUp = ObjectAnimator.ofFloat(binding.tvSkip, View.ALPHA, 0f, 1f)
-        alphaDown.duration = 1000
-        alphaUp.duration = 1000
-        animatorSet.play(alphaDown)
-        view.text = newText
-        animatorSet.play(alphaUp)
-        animatorSet.interpolator = LinearInterpolator()
-        animatorSet.start()
+        view.animate()
+            .alpha(0f)
+            .setInterpolator(LinearInterpolator())
+            .withEndAction {
+                view.text = newText
+                view.animate()
+                    .setInterpolator(LinearInterpolator())
+                    .alpha(1f)
+                    .start()
+            }
+            .start()
     }
 
     enum class TicketsAnimation {
