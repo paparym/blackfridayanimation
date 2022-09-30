@@ -1,49 +1,111 @@
 package com.practice.blackfridayanimation
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
-import android.os.Build
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
-import android.view.WindowManager
 import android.view.animation.LinearInterpolator
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import by.kirich1409.viewbindingdelegate.viewBinding
+import com.practice.blackfridayanimation.databinding.ActivityMainBinding
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var ticketsAdapter: TicketsAdapter
+    private var animationState = TicketsAnimation.IN_PROGRESS
 
     private var ticketList = mutableListOf<Ticket>()
+    private val dataFromApi = data10
+    var job: Job? = null
+
+    private val binding by viewBinding(ActivityMainBinding::bind)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val recycler = findViewById<RecyclerView>(R.id.recyclerView)
-        recycler.itemAnimator = MyItemAnimator(this)
+        binding.recyclerView.itemAnimator = MyItemAnimator(this)
         val layoutManager = object : GridLayoutManager(this, 6) {
             override fun canScrollVertically(): Boolean {
                 return true
             }
         }
-        recycler.layoutManager = layoutManager
+        binding.recyclerView.layoutManager = layoutManager
 
-        ticketsAdapter = TicketsAdapter(lifecycleScope)
-        recycler.adapter = ticketsAdapter
-        lifecycleScope.launch {
-            repeat(100) {
-                val newList = ArrayList(ticketList)
-                newList.add(0, Ticket(id = it))
-                ticketList = newList
-                ticketsAdapter.submitList(ticketList)
+        ticketsAdapter = TicketsAdapter()
+        binding.recyclerView.adapter = ticketsAdapter
+
+        binding.toolbar.navigationIcon?.setColorFilter(R.color.white, PorterDuff.Mode.LIGHTEN)
+
+        job?.cancel()
+        job = lifecycleScope.launch {
+            dataFromApi.forEach { ticket ->
+                addTicket(ticket)
                 delay(DEFAULT_DURATION)
+                updateTicketsCounted()
+            }
+            if (animationState == TicketsAnimation.IN_PROGRESS) completeAnimations()
+        }
+
+        binding.btnSkipOrContinue.setOnClickListener {
+            animationState = TicketsAnimation.COMPLETED
+            job?.cancel()
+            ticketList.clear()
+            ticketsAdapter.submitList(dataFromApi.reversed())
+            binding.recyclerView.itemAnimator = null
+            completeAnimations()
+
+            binding.recyclerView.post {
+                layoutManager.scrollToPosition(0)
             }
         }
+    }
+
+    private fun addTicket(ticket: Ticket) {
+        val newList = ArrayList(ticketList)
+        newList.add(0, ticket)
+        ticketList = newList
+        ticketsAdapter.submitList(ticketList)
+    }
+
+    private fun updateTicketsCounted() {
+        binding.toolbarTitle.text = "Counting tickets (${ticketList.size - 1})"
+    }
+
+    private fun completeAnimations() {
+        fadeAndChangeText(
+            view = binding.toolbarTitle,
+            newText = "Counting Completed (${dataFromApi.size - 1})"
+        )
+        fadeAndChangeText(view = binding.tvSkip, newText = "CONTINUE")
+    }
+
+    private fun fadeAndChangeText(view: TextView, newText: String) {
+        val animatorSet = AnimatorSet()
+        val alphaDown = ObjectAnimator.ofFloat(view, View.ALPHA, 1f, 0f)
+        val alphaUp = ObjectAnimator.ofFloat(binding.tvSkip, View.ALPHA, 0f, 1f)
+        alphaDown.duration = 1000
+        alphaUp.duration = 1000
+        animatorSet.play(alphaDown)
+        view.text = newText
+        animatorSet.play(alphaUp)
+        animatorSet.interpolator = LinearInterpolator()
+        animatorSet.start()
+    }
+
+    enum class TicketsAnimation {
+        IN_PROGRESS,
+        COMPLETED
     }
 }
 
@@ -52,18 +114,25 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
     private val defaultPadding = convertDpToPixel(4f, context) * 2
 
     override fun animateAdd(holder: RecyclerView.ViewHolder): Boolean {
+        val animatorSet = AnimatorSet()
         val view = holder.itemView
         view.x = -view.width.toFloat() - defaultPadding
         view.alpha = 0f
 
-        val animation = view.animate()
-        animation
-            .alpha(1f)
-            .setDuration(DEFAULT_DURATION)
-            .setInterpolator(LinearInterpolator())
-            .translationXBy(holder.itemView.width.toFloat() + defaultPadding * 2)
-            .start()
+        val alphaAnim = ObjectAnimator.ofFloat(view, View.ALPHA, 1f).apply {
+            duration = DEFAULT_DURATION / 2
+            startDelay = DEFAULT_DURATION / 2
+        }
+        val translationXAnim =
+            ObjectAnimator.ofFloat(view, View.TRANSLATION_X, defaultPadding / 2).apply {
+                duration = DEFAULT_DURATION
+            }
 
+        animatorSet.apply {
+            interpolator = LinearInterpolator()
+            playTogether(translationXAnim, alphaAnim)
+            start()
+        }
         return true
     }
 
@@ -105,6 +174,7 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
                 view.animate()
                     .translationX(toX.toFloat())
                     .setDuration(DEFAULT_DURATION / 2)
+                    .setInterpolator(LinearInterpolator())
                     .alpha(1f)
                     .start()
             }
@@ -130,20 +200,6 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
 
     private fun convertDpToPixel(dp: Float, context: Context) =
         dp * (context.resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
-
-    private fun getScreenWidth(context: Context): Int {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        return wm.run {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                currentWindowMetrics.bounds.width()
-            } else {
-                @Suppress("DEPRECATION")
-                DisplayMetrics().also { metrics ->
-                    defaultDisplay.getRealMetrics(metrics)
-                }.widthPixels
-            }
-        }
-    }
 }
 
-private const val DEFAULT_DURATION = 1000L
+private const val DEFAULT_DURATION = 300L
