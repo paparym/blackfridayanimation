@@ -1,9 +1,11 @@
 package com.practice.blackfridayanimation
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
+import android.view.WindowManager
 import android.view.animation.LinearInterpolator
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
@@ -94,13 +96,17 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         view.y = fromY.toFloat()
         view.animate()
             .setInterpolator(LinearInterpolator())
-            .translationXBy(view.width + defaultPadding * 2)
-            .alpha(0.5f)
-            .setDuration(DEFAULT_DURATION)
+            .translationXBy(view.width / 2f + defaultPadding)
+            .alpha(0.0f)
+            .setDuration(DEFAULT_DURATION / 2)
             .withEndAction {
                 view.y = toY.toFloat()
-                view.x = -view.width + defaultPadding * 2
-                view.alpha = 1f
+                view.x = -view.width / 2f
+                view.animate()
+                    .translationX(toX.toFloat())
+                    .setDuration(DEFAULT_DURATION / 2)
+                    .alpha(1f)
+                    .start()
             }
             .start()
         return false
@@ -124,6 +130,20 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
 
     private fun convertDpToPixel(dp: Float, context: Context) =
         dp * (context.resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
+
+    private fun getScreenWidth(context: Context): Int {
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        return wm.run {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                currentWindowMetrics.bounds.width()
+            } else {
+                @Suppress("DEPRECATION")
+                DisplayMetrics().also { metrics ->
+                    defaultDisplay.getRealMetrics(metrics)
+                }.widthPixels
+            }
+        }
+    }
 }
 
 private const val DEFAULT_DURATION = 1000L

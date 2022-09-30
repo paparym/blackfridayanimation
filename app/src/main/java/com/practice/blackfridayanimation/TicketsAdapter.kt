@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.practice.blackfridayanimation.databinding.TicketRowItemBinding
 import kotlinx.coroutines.CoroutineScope
+import kotlin.random.Random
 
 class TicketsAdapter(private val lifecycleScope: CoroutineScope) :
     ListAdapter<Ticket, TicketsAdapter.TicketsViewHolder>(DiffUtilCallback()) {
@@ -34,8 +35,9 @@ class TicketsAdapter(private val lifecycleScope: CoroutineScope) :
     inner class TicketsViewHolder(private val binding: TicketRowItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(ticketsRow: Ticket) {
-//            if (ticketsRow.id == 0) binding.root.visibility = View.GONE else View.VISIBLE
+            if (ticketsRow.id == 0) binding.root.visibility = View.GONE else View.VISIBLE
             binding.tvId.text = ticketsRow.id.toString()
+            binding.root.setBackgroundColor(Random.nextInt())
         }
     }
 
