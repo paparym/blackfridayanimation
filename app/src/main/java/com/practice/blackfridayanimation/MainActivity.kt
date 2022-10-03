@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
     private var animationState = TicketsAnimation.IN_PROGRESS
 
     private var ticketList = mutableListOf<Ticket>()
-    private val dataFromApi = data50
+    private val dataFromApi = data10
     var job: Job? = null
 
     private val binding by viewBinding(ActivityMainBinding::bind)
