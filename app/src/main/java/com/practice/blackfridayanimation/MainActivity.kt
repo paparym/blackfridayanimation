@@ -4,9 +4,12 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.PorterDuff
+import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import androidx.activity.ComponentActivity
@@ -14,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.practice.blackfridayanimation.databinding.ActivityMainBinding
 import kotlinx.coroutines.Job
@@ -34,15 +38,21 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        binding.recyclerView.itemAnimator = MyItemAnimator(this)
         val layoutManager = object : GridLayoutManager(this, 6) {
             override fun canScrollVertically(): Boolean {
                 return true
             }
         }
+        binding.recyclerView.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         binding.recyclerView.layoutManager = layoutManager
+        binding.recyclerView.itemAnimator = MyItemAnimator(this)
 
         ticketsAdapter = TicketsAdapter()
+        ticketsAdapter.registerAdapterDataObserver(object : AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                binding.recyclerView.scrollToPosition(0)
+            }
+        })
         binding.recyclerView.adapter = ticketsAdapter
 
         binding.toolbar.navigationIcon?.setColorFilter(R.color.white, PorterDuff.Mode.LIGHTEN)
@@ -50,7 +60,6 @@ class MainActivity : ComponentActivity() {
         job?.cancel()
         job = lifecycleScope.launch {
             dataFromApi.forEach { ticket ->
-                layoutManager.scrollToPosition(0)
                 addTicket(ticket)
                 delay(DEFAULT_DURATION)
                 updateTicketsCounted()
@@ -62,7 +71,6 @@ class MainActivity : ComponentActivity() {
             animationState = TicketsAnimation.COMPLETED
             job?.cancel()
             ticketList.clear()
-            ticketsAdapter.submitList(dataFromApi.reversed())
             binding.recyclerView.itemAnimator = null
             completeAnimations()
 
@@ -84,6 +92,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun completeAnimations() {
+        ticketsAdapter.submitList(dataFromApi.reversed())
         fadeAndChangeText(
             view = binding.toolbarTitle,
             newText = "Counting Completed (${dataFromApi.size - 1})"
@@ -116,6 +125,7 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
     private val defaultPadding = convertDpToPixel(4f, context) * 2
 
     override fun animateAdd(holder: RecyclerView.ViewHolder): Boolean {
+//        layoutManager.scrollToPosition(0)
         val animatorSet = AnimatorSet()
         val view = holder.itemView
         view.x = -view.width.toFloat() - defaultPadding
@@ -149,11 +159,30 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         var fromX = fromXParent
         fromX += view.translationX.toInt()
 
+//        return when {
+//            toY > 1200 -> handleOutOfScreenItem(view, fromX, fromYParent, toX, toY)
+//            holder.layoutPosition % 6 == 0 && holder.layoutPosition != 0 -> handleItemRowChange(view, fromX, fromYParent, toX, toY)
+//            else -> handleItemMove(view, fromX, fromYParent, toX)
+//        }
+//
         return if (holder.layoutPosition % 6 == 0 && holder.layoutPosition != 0) {
             handleItemRowChange(view, fromX, fromYParent, toX, toY)
         } else {
             handleItemMove(view, fromX, fromYParent, toX)
         }
+    }
+
+    override fun animateDisappearance(
+        viewHolder: RecyclerView.ViewHolder,
+        preLayoutInfo: ItemHolderInfo,
+        postLayoutInfo: ItemHolderInfo?
+    ): Boolean {
+        viewHolder.itemView.animate()
+            .setInterpolator(LinearInterpolator())
+            .setDuration(DEFAULT_DURATION / 2)
+            .alpha(0f)
+            .start()
+        return false
     }
 
     private fun handleItemRowChange(
@@ -171,6 +200,7 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
             .alpha(0.0f)
             .setDuration(DEFAULT_DURATION / 2)
             .withEndAction {
+//                layoutManager.scrollToPosition(0)
                 view.y = toY.toFloat()
                 view.x = -view.width / 2f
                 view.animate()
@@ -200,8 +230,36 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         return false
     }
 
+    private fun handleOutOfScreenItem(
+        view: View,
+        fromX: Int,
+        fromY: Int,
+        toX: Int,
+        toY: Int
+    ): Boolean {
+        view.animate()
+            .setInterpolator(LinearInterpolator())
+            .alpha(0f)
+            .start()
+        return false
+    }
+
     private fun convertDpToPixel(dp: Float, context: Context) =
         dp * (context.resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
+
+    private fun getScreenHeight(context: Context): Int {
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        return wm.run {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                currentWindowMetrics.bounds.height()
+            } else {
+                @Suppress("DEPRECATION")
+                DisplayMetrics().also { metrics ->
+                    defaultDisplay.getRealMetrics(metrics)
+                }.heightPixels
+            }
+        }
+    }
 }
 
 private const val DEFAULT_DURATION = 300L

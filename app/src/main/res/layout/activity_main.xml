@@ -29,6 +29,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="vertical"
+        android:descendantFocusability="blocksDescendants"
         app:layout_constraintBottom_toBottomOf="@id/btnSkipOrContinue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,16 +38,16 @@
     <FrameLayout
         android:layout_width="0dp"
         android:layout_height="16sp"
+        android:background="@drawable/shadow_gradient"
         app:layout_constraintBottom_toTopOf="@id/btnSkipOrContinue"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:background="@drawable/shadow_gradient"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <FrameLayout
         android:id="@+id/btnSkipOrContinue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="80dp"
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
