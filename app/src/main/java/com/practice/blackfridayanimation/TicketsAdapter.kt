@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.practice.blackfridayanimation.databinding.TicketRowItemBinding
-import kotlin.random.Random
 
 class TicketsAdapter :
     ListAdapter<Ticket, TicketsAdapter.TicketsViewHolder>(DiffUtilCallback()) {
@@ -28,10 +27,10 @@ class TicketsAdapter :
 
     inner class TicketsViewHolder(private val binding: TicketRowItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(ticketsRow: Ticket) {
-            binding.root.isVisible = ticketsRow.id != 0
-            binding.tvId.text = ticketsRow.id.toString()
-            binding.root.setBackgroundColor(Random.nextInt())
+        fun bind(ticket: Ticket) {
+            binding.root.isVisible = ticket.id != 0
+            binding.tvId.text = ticket.id.toString()
+            binding.root.setBackgroundColor(ticket.color)
         }
     }
 

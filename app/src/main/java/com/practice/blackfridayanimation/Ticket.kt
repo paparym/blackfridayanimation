@@ -1,3 +1,5 @@
 package com.practice.blackfridayanimation
 
-data class Ticket(val id: Int)
+import kotlin.random.Random
+
+data class Ticket(val id: Int, val color: Int = Random.nextInt())

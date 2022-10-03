@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
@@ -27,32 +26,38 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private lateinit var ticketsAdapter: TicketsAdapter
+    private lateinit var layoutManager: GridLayoutManager
     private var animationState = TicketsAnimation.IN_PROGRESS
 
     private var ticketList = mutableListOf<Ticket>()
-    private val dataFromApi = data100
+    private val dataFromApi = data50
     var job: Job? = null
 
     private val binding by viewBinding(ActivityMainBinding::bind)
 
+    private fun setCanScrollVertically(canScroll: Boolean) {
+        layoutManager = object : GridLayoutManager(this, 6) {
+            override fun canScrollVertically(): Boolean {
+                return canScroll
+            }
+        }
+        binding.recyclerView.layoutManager = layoutManager
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val layoutManager = object : GridLayoutManager(this, 6) {
-            override fun canScrollVertically(): Boolean {
-                return true
-            }
-        }
-        binding.recyclerView.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        setCanScrollVertically(false)
         binding.recyclerView.layoutManager = layoutManager
         binding.recyclerView.itemAnimator = MyItemAnimator(this)
 
         ticketsAdapter = TicketsAdapter()
-        ticketsAdapter.registerAdapterDataObserver(object : AdapterDataObserver() {
+        val adapterObserver = object : AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 binding.recyclerView.scrollToPosition(0)
             }
-        })
+        }
+        ticketsAdapter.registerAdapterDataObserver(adapterObserver)
         binding.recyclerView.adapter = ticketsAdapter
 
         binding.toolbar.navigationIcon?.setColorFilter(R.color.white, PorterDuff.Mode.LIGHTEN)
@@ -64,7 +69,10 @@ class MainActivity : ComponentActivity() {
                 delay(DEFAULT_DURATION)
                 updateTicketsCounted()
             }
-            if (animationState == TicketsAnimation.IN_PROGRESS) completeAnimations()
+            if (animationState == TicketsAnimation.IN_PROGRESS) {
+                completeAnimations()
+                setCanScrollVertically(true)
+            }
         }
 
         binding.btnSkipOrContinue.setOnClickListener {
@@ -72,7 +80,10 @@ class MainActivity : ComponentActivity() {
             job?.cancel()
             ticketList.clear()
             binding.recyclerView.itemAnimator = null
+            ticketsAdapter.submitList(dataFromApi.reversed())
             completeAnimations()
+
+            setCanScrollVertically(true)
 
             binding.recyclerView.post {
                 layoutManager.scrollToPosition(0)
@@ -92,7 +103,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun completeAnimations() {
-        ticketsAdapter.submitList(dataFromApi.reversed())
         fadeAndChangeText(
             view = binding.toolbarTitle,
             newText = "Counting Completed (${dataFromApi.size - 1})"
@@ -262,4 +272,4 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
     }
 }
 
-private const val DEFAULT_DURATION = 300L
+private const val DEFAULT_DURATION = 500L
