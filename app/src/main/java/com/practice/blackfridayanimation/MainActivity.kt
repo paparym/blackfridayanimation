@@ -4,11 +4,9 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.PorterDuff
-import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
-import android.view.WindowManager
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import androidx.activity.ComponentActivity
@@ -132,10 +130,9 @@ class MainActivity : ComponentActivity() {
 
 class MyItemAnimator(context: Context) : DefaultItemAnimator() {
 
-    private val defaultPadding = convertDpToPixel(4f, context) * 2
+    private val defaultPadding = convertDpToPixel(2f, context)
 
     override fun animateAdd(holder: RecyclerView.ViewHolder): Boolean {
-//        layoutManager.scrollToPosition(0)
         val animatorSet = AnimatorSet()
         val view = holder.itemView
         view.x = -view.width.toFloat() - defaultPadding
@@ -169,30 +166,11 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         var fromX = fromXParent
         fromX += view.translationX.toInt()
 
-//        return when {
-//            toY > 1200 -> handleOutOfScreenItem(view, fromX, fromYParent, toX, toY)
-//            holder.layoutPosition % 6 == 0 && holder.layoutPosition != 0 -> handleItemRowChange(view, fromX, fromYParent, toX, toY)
-//            else -> handleItemMove(view, fromX, fromYParent, toX)
-//        }
-//
         return if (holder.layoutPosition % 6 == 0 && holder.layoutPosition != 0) {
             handleItemRowChange(view, fromX, fromYParent, toX, toY)
         } else {
             handleItemMove(view, fromX, fromYParent, toX)
         }
-    }
-
-    override fun animateDisappearance(
-        viewHolder: RecyclerView.ViewHolder,
-        preLayoutInfo: ItemHolderInfo,
-        postLayoutInfo: ItemHolderInfo?
-    ): Boolean {
-        viewHolder.itemView.animate()
-            .setInterpolator(LinearInterpolator())
-            .setDuration(DEFAULT_DURATION / 2)
-            .alpha(0f)
-            .start()
-        return false
     }
 
     private fun handleItemRowChange(
@@ -210,7 +188,6 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
             .alpha(0.0f)
             .setDuration(DEFAULT_DURATION / 2)
             .withEndAction {
-//                layoutManager.scrollToPosition(0)
                 view.y = toY.toFloat()
                 view.x = -view.width / 2f
                 view.animate()
@@ -240,36 +217,8 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         return false
     }
 
-    private fun handleOutOfScreenItem(
-        view: View,
-        fromX: Int,
-        fromY: Int,
-        toX: Int,
-        toY: Int
-    ): Boolean {
-        view.animate()
-            .setInterpolator(LinearInterpolator())
-            .alpha(0f)
-            .start()
-        return false
-    }
-
     private fun convertDpToPixel(dp: Float, context: Context) =
         dp * (context.resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
-
-    private fun getScreenHeight(context: Context): Int {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        return wm.run {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                currentWindowMetrics.bounds.height()
-            } else {
-                @Suppress("DEPRECATION")
-                DisplayMetrics().also { metrics ->
-                    defaultDisplay.getRealMetrics(metrics)
-                }.heightPixels
-            }
-        }
-    }
 }
 
-private const val DEFAULT_DURATION = 500L
+private const val DEFAULT_DURATION = 200L
