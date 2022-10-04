@@ -7,6 +7,7 @@ import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import androidx.activity.ComponentActivity
@@ -28,7 +29,7 @@ class MainActivity : ComponentActivity() {
     private var animationState = TicketsAnimation.IN_PROGRESS
 
     private var ticketList = mutableListOf<Ticket>()
-    private val dataFromApi = data10
+    private val dataFromApi = data50
     var job: Job? = null
 
     private val binding by viewBinding(ActivityMainBinding::bind)
@@ -180,6 +181,25 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         toX: Int,
         toY: Int
     ): Boolean {
+        val newView = View(view.context)
+        newView.layoutParams = ViewGroup.LayoutParams(
+            view.width,
+            view.height
+        )
+        (view.rootView as ViewGroup).addView(newView)
+        newView.setBackgroundColor(R.color.white)
+        newView.y = convertDpToPixel(24f, view.context) + toY + view.height + defaultPadding * 3
+        newView.x = -view.width - defaultPadding / 2
+        newView.animate()
+            .setStartDelay(DEFAULT_DURATION)
+            .translationX(toX.toFloat() + defaultPadding)
+            .setDuration(DEFAULT_DURATION)
+            .setInterpolator(LinearInterpolator())
+            .withEndAction {
+                (view.rootView as ViewGroup).removeView(newView)
+            }
+            .start()
+
         view.x = fromX.toFloat()
         view.y = fromY.toFloat()
         view.animate()
@@ -221,4 +241,4 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
         dp * (context.resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
 }
 
-private const val DEFAULT_DURATION = 200L
+private const val DEFAULT_DURATION = 2000L
