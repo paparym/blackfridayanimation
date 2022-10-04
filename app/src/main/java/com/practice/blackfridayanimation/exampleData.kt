@@ -28,3 +28,17 @@ val data100 = (data50 + data50).let { list ->
         item.copy(id = id++, color = Random.nextInt())
     }
 }
+
+val data500 = (data100 + data100 + data100 + data100 + data100).let { list ->
+    var id = 0
+    list.map { item ->
+        item.copy(id = id++, color = Random.nextInt())
+    }
+}
+
+val data1000 = (data500 + data500).let { list ->
+    var id = 0
+    list.map { item ->
+        item.copy(id = id++, color = Random.nextInt())
+    }
+}
