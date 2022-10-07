@@ -5,142 +5,42 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.activity.ComponentActivity
-import androidx.lifecycle.lifecycleScope
+import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
-import by.kirich1409.viewbindingdelegate.viewBinding
+import com.bluelinelabs.conductor.Conductor.attachRouter
+import com.bluelinelabs.conductor.Router
+import com.bluelinelabs.conductor.Router.PopRootControllerMode
+import com.bluelinelabs.conductor.RouterTransaction
 import com.bumptech.glide.Glide
-import com.practice.blackfridayanimation.databinding.ActivityMainBinding
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-
-    private lateinit var ticketsAdapter: TicketsAdapter
-    private lateinit var layoutManager: GridLayoutManager
-    private var animationState = TicketsAnimation.IN_PROGRESS
-
-    private var ticketList = mutableListOf<Ticket>()
-    private val dataFromApi = data1000
-    var job: Job? = null
-
-    private val binding by viewBinding(ActivityMainBinding::bind)
-
-    private fun setCanScrollVertically(canScroll: Boolean) {
-        layoutManager = object : GridLayoutManager(this, 6) {
-            override fun canScrollVertically(): Boolean {
-                return canScroll
-            }
-        }
-        binding.recyclerView.layoutManager = layoutManager
-    }
-
-    override fun onPause() {
-        forceCompleteAnimation()
-        super.onPause()
-    }
+    private var router: Router? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        setCanScrollVertically(false)
-        binding.recyclerView.layoutManager = layoutManager
-        binding.recyclerView.itemAnimator = MyItemAnimator(this)
-
-        ticketsAdapter = TicketsAdapter()
-        val adapterObserver = object : AdapterDataObserver() {
-            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                binding.recyclerView.scrollToPosition(0)
-            }
-        }
-        ticketsAdapter.registerAdapterDataObserver(adapterObserver)
-        binding.recyclerView.adapter = ticketsAdapter
-
-        binding.toolbar.navigationIcon?.setColorFilter(R.color.white, PorterDuff.Mode.LIGHTEN)
-
-        job?.cancel()
-        job = lifecycleScope.launch {
-            dataFromApi.forEach { ticket ->
-                addTicket(ticket)
-                delay(DEFAULT_DURATION)
-                updateTicketsCounted()
-            }
-            if (animationState == TicketsAnimation.IN_PROGRESS) {
-                binding.recyclerView.itemAnimator = null
-                completeAnimations()
-                setCanScrollVertically(true)
-            }
-        }
-
-        binding.btnSkipOrContinue.setOnClickListener {
-            forceCompleteAnimation()
+        setContentView(R.layout.activity_main_main)
+        val container = findViewById<FrameLayout>(R.id.conductorContainer)
+        router = attachRouter(this, container, savedInstanceState)
+            .setPopRootControllerMode(PopRootControllerMode.NEVER)
+        if (!router!!.hasRootController()) {
+            router!!.setRoot(RouterTransaction.with(MainController()))
         }
     }
 
-    private fun forceCompleteAnimation() {
-        animationState = TicketsAnimation.COMPLETED
-        job?.cancel()
-        ticketList.clear()
-        binding.recyclerView.itemAnimator = null
-        ticketsAdapter.submitList(dataFromApi.reversed())
-        completeAnimations()
-
-        setCanScrollVertically(true)
-
-        binding.recyclerView.post {
-            layoutManager.scrollToPosition(0)
+    override fun onBackPressed() {
+        if (!router!!.handleBack()) {
+            super.onBackPressed()
         }
-    }
-
-    private fun addTicket(ticket: Ticket) {
-        val newList = ArrayList(ticketList)
-        newList.add(0, ticket)
-        ticketList = newList
-        ticketsAdapter.submitList(ticketList)
-    }
-
-    private fun updateTicketsCounted() {
-        binding.toolbarTitle.text = "Counting tickets (${ticketList.size - 1})"
-    }
-
-    private fun completeAnimations() {
-        fadeAndChangeText(
-            view = binding.toolbarTitle,
-            newText = "Counting Completed (${dataFromApi.size - 1})"
-        )
-        fadeAndChangeText(view = binding.tvSkip, newText = "CONTINUE")
-    }
-
-    private fun fadeAndChangeText(view: TextView, newText: String) {
-        view.animate()
-            .alpha(0f)
-            .setInterpolator(LinearInterpolator())
-            .withEndAction {
-                view.text = newText
-                view.animate()
-                    .setInterpolator(LinearInterpolator())
-                    .alpha(1f)
-                    .start()
-            }
-            .start()
-    }
-
-    enum class TicketsAnimation {
-        IN_PROGRESS,
-        COMPLETED
     }
 }
 
@@ -267,4 +167,18 @@ class MyItemAnimator(context: Context) : DefaultItemAnimator() {
     }
 }
 
-private const val DEFAULT_DURATION = 2000L
+const val DEFAULT_DURATION = 500L
+
+inline fun <reified V : View> LayoutInflater.inflate(
+    @LayoutRes layoutId: Int,
+    container: ViewGroup,
+    block: V.() -> Unit = {}
+): V {
+    val view = inflate(layoutId, container, false)
+    if (view !is V) {
+        val layoutName = container.resources.getResourceName(layoutId)
+        throw ClassCastException("Root tag of $layoutName is not ${V::class.java.canonicalName}")
+    }
+    view.block()
+    return view
+}
