@@ -15,7 +15,7 @@ val data5 = listOf(
         "2",
         type = AchievementTicket.Type.A,
         description = "",
-        status = AchievementTicket.Status.ACTIVE,
+        status = AchievementTicket.Status.INACTIVE,
         quantity = 0,
         assetUrl = ""
     ),

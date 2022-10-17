@@ -72,22 +72,6 @@ private fun TotalEarnedInfo() {
         text = text,
         color = Color.White
     )
-//    Text(
-//        text = "Earn tickets by participating in Black Friday events. "
-//            .plus(
-//                ClickableText(
-//                    text = AnnotatedString(
-//                        text = "Tap to learn more",
-//                        spanStyle = SpanStyle(
-//                            textDecoration = TextDecoration.Underline,
-//                            color = Color.White
-//                        )
-//                    ),
-//                    onClick = {}
-//                )
-//            ),
-//        color = Color.White
-//    )
 }
 
 private fun LazyGridScope.header(
