@@ -6,16 +6,18 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
-import androidx.compose.material.Text
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.AbstractComposeView
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.practice.blackfridayanimation.R
 import com.practice.blackfridayanimation.informationHeader
 import com.practice.blackfridayanimation.isScrolledToTheEnd
 import com.practice.blackfridayanimation.models.AchievementTicket
@@ -54,21 +56,35 @@ class TotalEarnedTicketsView @JvmOverloads constructor(
 
 @Composable
 private fun TotalEarnedInfo() {
+    val mainInfoText = stringResource(id = R.string.total_earned_main_info)
+    val startIndex = mainInfoText.indexOf("Tap")
+    val endIndex = mainInfoText.length
     val text = buildAnnotatedString {
-        append("Earn tickets by participating in Black Friday events. ")
-        append(
-            AnnotatedString(
-                text = "Tap to learn more",
-                spanStyle = SpanStyle(
-                    textDecoration = TextDecoration.Underline
-                )
-            )
+        append(mainInfoText)
+        addStyle(
+            style = SpanStyle(
+                textDecoration = TextDecoration.Underline
+            ),
+            start = startIndex,
+            end = endIndex
+        )
+        addStringAnnotation(
+            tag = "URL",
+            annotation = "tab to learn more",
+            start = startIndex,
+            end = endIndex
         )
     }
-    Text(
+    ClickableText(
         modifier = Modifier.padding(vertical = PADDING_HEADER_VERTICAL.dp),
         text = text,
-        color = Color.White
+        style = TextStyle(color = Color.White),
+        onClick = { offset ->
+            text.getStringAnnotations(tag = "URL", start = offset, end = offset).firstOrNull()
+                ?.let {
+                    Log.d("-->", "yo you ${it.item}")
+                }
+        }
     )
 }
 
