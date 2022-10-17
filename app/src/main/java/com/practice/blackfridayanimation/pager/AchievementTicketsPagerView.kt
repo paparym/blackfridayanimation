@@ -3,8 +3,6 @@ package com.practice.blackfridayanimation.pager
 import android.content.Context
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.doOnLayout
-import androidx.viewpager.widget.ViewPager
 import com.practice.blackfridayanimation.databinding.AchievementTicektsPagerViewBinding
 
 class AchievementTicketsPagerView @JvmOverloads constructor(
@@ -20,8 +18,5 @@ class AchievementTicketsPagerView @JvmOverloads constructor(
         super.onFinishInflate()
         binding = AchievementTicektsPagerViewBinding.bind(this)
         tabLayout.setupWithViewPager(viewPager)
-        viewPager.doOnLayout {
-            (it as ViewPager).currentItem = 1
-        }
     }
 }

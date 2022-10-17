@@ -20,7 +20,7 @@ class AchievementTicketsPagerController : Controller() {
         achievementTicketsAdapter = AchievementTicketsPagerAdapter(this)
         val view = inflater.inflate<AchievementTicketsPagerView>(
             R.layout.achievement_ticekts_pager_view,
-            container,
+            container
         )
         view.viewPager.adapter = achievementTicketsAdapter
         return view
