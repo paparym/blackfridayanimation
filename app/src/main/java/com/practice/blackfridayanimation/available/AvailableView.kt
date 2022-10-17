@@ -55,7 +55,7 @@ class AvailableView @JvmOverloads constructor(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
 
             ) {
-                header {
+                informationHeader {
                     AvailableInfo()
                 }
                 items(dataFromApi) { ticket ->
@@ -139,7 +139,7 @@ private fun AvailableInfo() {
     )
 }
 
-private fun LazyGridScope.header(
+private fun LazyGridScope.informationHeader(
     content: @Composable LazyGridItemScope.() -> Unit
 ) {
     item(span = { GridItemSpan(this.maxLineSpan) }, content = content)
