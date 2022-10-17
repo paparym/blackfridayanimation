@@ -16,8 +16,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.practice.blackfridayanimation.available.isScrolledToTheEnd
 import com.practice.blackfridayanimation.informationHeader
+import com.practice.blackfridayanimation.isScrolledToTheEnd
 import com.practice.blackfridayanimation.models.AchievementTicket
 import com.practice.blackfridayanimation.models.data50
 
