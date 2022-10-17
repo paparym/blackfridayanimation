@@ -7,6 +7,7 @@ import com.bluelinelabs.conductor.Conductor.attachRouter
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.Router.PopRootControllerMode
 import com.bluelinelabs.conductor.RouterTransaction
+import com.practice.blackfridayanimation.pager.AchievementTicketsPagerController
 
 class MainActivity : ComponentActivity() {
     private var router: Router? = null
@@ -18,7 +19,7 @@ class MainActivity : ComponentActivity() {
         router = attachRouter(this, container, savedInstanceState)
             .setPopRootControllerMode(PopRootControllerMode.NEVER)
         if (!router!!.hasRootController()) {
-            router!!.setRoot(RouterTransaction.with(AchievementTicketsOverviewController()))
+            router!!.setRoot(RouterTransaction.with(AchievementTicketsPagerController()))
         }
     }
 

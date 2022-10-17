@@ -1,4 +1,4 @@
-package com.practice.blackfridayanimation
+package com.practice.blackfridayanimation.pager
 
 import android.content.Context
 import android.util.AttributeSet
@@ -11,7 +11,7 @@ class AchievementTicketsPagerView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
     private lateinit var binding: AchievementTicektsPagerViewBinding
-    private val viewPager get() = binding.viewPager
+    val viewPager get() = binding.viewPager
     private val tabLayout get() = binding.tabLayout
 
     override fun onFinishInflate() {

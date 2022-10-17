@@ -4,6 +4,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
+import com.bluelinelabs.conductor.Controller
+import com.bluelinelabs.conductor.Router
+import com.bluelinelabs.conductor.RouterTransaction
 
 inline fun <reified V : View> LayoutInflater.inflate(
     @LayoutRes layoutId: Int,
@@ -18,3 +21,11 @@ inline fun <reified V : View> LayoutInflater.inflate(
     view.block()
     return view
 }
+
+inline var Router.root: Controller?
+    set(value) {
+        if (value != null) {
+            setRoot(RouterTransaction.with(value))
+        }
+    }
+    get() = if (backstackSize > 0) backstack[0].controller else null
