@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.bluelinelabs.conductor.Controller
-import com.practice.blackfridayanimation.R
-import com.practice.blackfridayanimation.inflate
 
 class AvailableController : Controller() {
     override fun onCreateView(
@@ -14,6 +12,6 @@ class AvailableController : Controller() {
         container: ViewGroup,
         savedViewState: Bundle?
     ): View {
-        return inflater.inflate<AvailableView>(R.layout.available_view, container)
+        return AvailableView(container.context, null)
     }
 }
