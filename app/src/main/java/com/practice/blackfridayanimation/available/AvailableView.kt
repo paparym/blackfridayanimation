@@ -2,11 +2,13 @@ package com.practice.blackfridayanimation.available
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -17,7 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.res.painterResource
@@ -36,17 +37,18 @@ class AvailableView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : AbstractComposeView(context, attrs, defStyleAttr) {
 
-    private val dataFromApi = data50
-
     @Composable
     override fun Content() {
+        var dataFromApi by remember { mutableStateOf(data50) }
         val coroutineScope = rememberCoroutineScope()
+        val listState = rememberLazyGridState()
         Column(
             Modifier.padding(
                 horizontal = 16.dp
             )
         ) {
             LazyVerticalGrid(
+                state = listState,
                 columns = GridCells.Fixed(3),
                 modifier = Modifier,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -57,7 +59,7 @@ class AvailableView @JvmOverloads constructor(
                     AvailableInfo()
                 }
                 items(dataFromApi) { ticket ->
-                    var state by remember {
+                    var visibilityState by remember {
                         mutableStateOf(
                             if (ticket.status == AchievementTicket.Status.ACTIVE) {
                                 TicketState.FullyVisible
@@ -66,13 +68,13 @@ class AvailableView @JvmOverloads constructor(
                             }
                         )
                     }
-                    var alpha by remember {
-                        mutableStateOf(
-                            when (state) {
+                    val alpha by remember {
+                        derivedStateOf {
+                            when (visibilityState) {
                                 TicketState.FullyVisible -> 1f
                                 TicketState.HalfVisible -> 0.5f
                             }
-                        )
+                        }
                     }
                     val animatedAlpha = animateFloatAsState(
                         targetValue = alpha,
@@ -85,12 +87,15 @@ class AvailableView @JvmOverloads constructor(
                         AsyncImage(
                             modifier = Modifier
                                 .height(157.dp)
-                                .clickable {
-                                    if (state == TicketState.HalfVisible) {
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    if (visibilityState == TicketState.HalfVisible) {
                                         coroutineScope.launch {
-                                            state = TicketState.FullyVisible
+                                            visibilityState = TicketState.FullyVisible
                                             delay(2000)
-                                            state = TicketState.HalfVisible
+                                            visibilityState = TicketState.HalfVisible
                                         }
                                     }
                                 },
@@ -107,6 +112,10 @@ class AvailableView @JvmOverloads constructor(
                             color = Color.White
                         )
                     }
+                }
+                if (listState.isScrolledToTheEnd()) {
+                    dataFromApi = dataFromApi + data50
+                    Log.d("-->", "Paging worked new size: ${dataFromApi.size}")
                 }
             }
         }
@@ -135,3 +144,6 @@ private fun LazyGridScope.header(
 ) {
     item(span = { GridItemSpan(this.maxLineSpan) }, content = content)
 }
+
+fun LazyGridState.isScrolledToTheEnd() =
+    layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1

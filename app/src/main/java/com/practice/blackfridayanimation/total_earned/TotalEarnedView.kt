@@ -6,7 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.AbstractComposeView
@@ -23,10 +23,9 @@ class TotalEarnedView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : AbstractComposeView(context, attrs, defStyleAttr) {
 
-    private val dataFromApi = data50
-
     @Composable
     override fun Content() {
+        var dataFromApi by remember { mutableStateOf(data50) }
         Column(
             Modifier.padding(
                 horizontal = 16.dp
