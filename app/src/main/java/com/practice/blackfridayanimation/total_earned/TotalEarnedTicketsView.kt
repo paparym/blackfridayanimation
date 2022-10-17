@@ -20,8 +20,10 @@ import com.practice.blackfridayanimation.informationHeader
 import com.practice.blackfridayanimation.isScrolledToTheEnd
 import com.practice.blackfridayanimation.models.AchievementTicket
 import com.practice.blackfridayanimation.models.data50
+import com.practice.blackfridayanimation.total_earned.TotalEarnedTicketsView.Companion.HEIGHT_TICKET
+import com.practice.blackfridayanimation.total_earned.TotalEarnedTicketsView.Companion.PADDING_HEADER_VERTICAL
 
-class TotalEarnedView @JvmOverloads constructor(
+class TotalEarnedTicketsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet?,
     defStyleAttr: Int = 0
@@ -45,6 +47,8 @@ class TotalEarnedView @JvmOverloads constructor(
         internal const val ITEM_PADDING = 4
         internal const val LIST_PADDING = 16
         internal const val SPAN_COUNT = 6
+        internal const val PADDING_HEADER_VERTICAL = 32
+        internal const val HEIGHT_TICKET = 82
     }
 }
 
@@ -62,7 +66,7 @@ private fun TotalEarnedInfo() {
         )
     }
     Text(
-        modifier = Modifier.padding(vertical = 32.dp),
+        modifier = Modifier.padding(vertical = PADDING_HEADER_VERTICAL.dp),
         text = text,
         color = Color.White
     )
@@ -76,15 +80,15 @@ private fun TotalEarnedScreen(
 ) {
     Column(
         Modifier.padding(
-            horizontal = TotalEarnedView.LIST_PADDING.dp
+            horizontal = TotalEarnedTicketsView.LIST_PADDING.dp
         )
     ) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(TotalEarnedView.SPAN_COUNT),
+            columns = GridCells.Fixed(TotalEarnedTicketsView.SPAN_COUNT),
             modifier = Modifier,
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(TotalEarnedView.ITEM_PADDING.dp),
-            horizontalArrangement = Arrangement.spacedBy(TotalEarnedView.ITEM_PADDING.dp)
+            verticalArrangement = Arrangement.spacedBy(TotalEarnedTicketsView.ITEM_PADDING.dp),
+            horizontalArrangement = Arrangement.spacedBy(TotalEarnedTicketsView.ITEM_PADDING.dp)
         ) {
             informationHeader {
                 TotalEarnedInfo()
@@ -92,7 +96,7 @@ private fun TotalEarnedScreen(
             items(data) { ticket ->
                 Box(
                     modifier = Modifier
-                        .height(82.dp)
+                        .height(HEIGHT_TICKET.dp)
                         .background(color = Color.Blue)
                 )
             }

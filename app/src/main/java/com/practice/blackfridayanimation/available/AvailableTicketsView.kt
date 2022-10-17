@@ -26,6 +26,14 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.practice.blackfridayanimation.R
+import com.practice.blackfridayanimation.available.AvailableTicketsView.Companion.ANIM_FADE_DURATION
+import com.practice.blackfridayanimation.available.AvailableTicketsView.Companion.ANIM_PERSISTENCE_DURATION
+import com.practice.blackfridayanimation.available.AvailableTicketsView.Companion.HEIGHT_TICKET
+import com.practice.blackfridayanimation.available.AvailableTicketsView.Companion.PADDING_HEADER_VERTICAL
+import com.practice.blackfridayanimation.available.AvailableTicketsView.Companion.PADDING_LIST_HORIZONTAL
+import com.practice.blackfridayanimation.available.AvailableTicketsView.Companion.PADDING_LIST_VERTICAL
+import com.practice.blackfridayanimation.available.AvailableTicketsView.Companion.PADDING_TEXT
+import com.practice.blackfridayanimation.available.AvailableTicketsView.Companion.SPAN_COUNT
 import com.practice.blackfridayanimation.informationHeader
 import com.practice.blackfridayanimation.isScrolledToTheEnd
 import com.practice.blackfridayanimation.models.AchievementTicket
@@ -34,7 +42,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class AvailableView @JvmOverloads constructor(
+class AvailableTicketsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet?,
     defStyleAttr: Int = 0
@@ -60,6 +68,17 @@ class AvailableView @JvmOverloads constructor(
         FullyVisible,
         HalfVisible
     }
+
+    companion object {
+        internal const val ANIM_FADE_DURATION = 333
+        internal const val ANIM_PERSISTENCE_DURATION = 2000L
+        internal const val HEIGHT_TICKET = 157
+        internal const val PADDING_TEXT = 12
+        internal const val PADDING_LIST_HORIZONTAL = 16
+        internal const val PADDING_LIST_VERTICAL = 24
+        internal const val PADDING_HEADER_VERTICAL = 32
+        internal const val SPAN_COUNT = 3
+    }
 }
 
 @Composable
@@ -68,7 +87,7 @@ private fun AvailableInfo() {
         append("Use your available tickets to enter Drops, Raffles and Auctions")
     }
     Text(
-        modifier = Modifier.padding(vertical = 32.dp),
+        modifier = Modifier.padding(vertical = PADDING_HEADER_VERTICAL.dp),
         text = text,
         color = Color.White
     )
@@ -82,23 +101,23 @@ private fun TicketItem(
     var ticketAlphaState by remember {
         mutableStateOf(
             if (ticket.status == AchievementTicket.Status.ACTIVE) {
-                AvailableView.TicketAlphaState.FullyVisible
+                AvailableTicketsView.TicketAlphaState.FullyVisible
             } else {
-                AvailableView.TicketAlphaState.HalfVisible
+                AvailableTicketsView.TicketAlphaState.HalfVisible
             }
         )
     }
     val alpha by remember {
         derivedStateOf {
             when (ticketAlphaState) {
-                AvailableView.TicketAlphaState.FullyVisible -> 1f
-                AvailableView.TicketAlphaState.HalfVisible -> 0.5f
+                AvailableTicketsView.TicketAlphaState.FullyVisible -> 1f
+                AvailableTicketsView.TicketAlphaState.HalfVisible -> 0.5f
             }
         }
     }
     val animatedAlpha = animateFloatAsState(
         targetValue = alpha,
-        animationSpec = tween(durationMillis = 333, easing = LinearEasing)
+        animationSpec = tween(durationMillis = ANIM_FADE_DURATION, easing = LinearEasing)
     )
     Column(
         horizontalAlignment = Alignment.End,
@@ -106,16 +125,16 @@ private fun TicketItem(
     ) {
         AsyncImage(
             modifier = Modifier
-                .height(157.dp)
+                .height(HEIGHT_TICKET.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
                 ) {
-                    if (ticketAlphaState == AvailableView.TicketAlphaState.HalfVisible) {
+                    if (ticketAlphaState == AvailableTicketsView.TicketAlphaState.HalfVisible) {
                         coroutineScope.launch {
-                            ticketAlphaState = AvailableView.TicketAlphaState.FullyVisible
-                            delay(2000)
-                            ticketAlphaState = AvailableView.TicketAlphaState.HalfVisible
+                            ticketAlphaState = AvailableTicketsView.TicketAlphaState.FullyVisible
+                            delay(ANIM_PERSISTENCE_DURATION)
+                            ticketAlphaState = AvailableTicketsView.TicketAlphaState.HalfVisible
                         }
                     }
                 },
@@ -127,7 +146,7 @@ private fun TicketItem(
             alpha = animatedAlpha.value
         )
         Text(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier.padding(top = PADDING_TEXT.dp),
             text = "(${ticket.id})",
             color = Color.White
         )
@@ -143,15 +162,15 @@ private fun AvailableTicketsScreen(
 ) {
     Column(
         Modifier.padding(
-            horizontal = 16.dp
+            horizontal = PADDING_LIST_HORIZONTAL.dp
         )
     ) {
         LazyVerticalGrid(
             state = listState,
-            columns = GridCells.Fixed(3),
+            columns = GridCells.Fixed(SPAN_COUNT),
             modifier = Modifier,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            horizontalArrangement = Arrangement.spacedBy(PADDING_LIST_HORIZONTAL.dp),
+            verticalArrangement = Arrangement.spacedBy(PADDING_LIST_VERTICAL.dp)
 
         ) {
             informationHeader {

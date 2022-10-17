@@ -2,9 +2,9 @@ package com.practice.blackfridayanimation.pager
 
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.viewpager.RouterPagerAdapter
-import com.practice.blackfridayanimation.available.AvailableController
+import com.practice.blackfridayanimation.available.AvailableTicketsController
 import com.practice.blackfridayanimation.root
-import com.practice.blackfridayanimation.total_earned.TotalEarnedController
+import com.practice.blackfridayanimation.total_earned.TotalEarnedTicketsController
 
 class AchievementTicketsPagerAdapter(
     host: AchievementTicketsPagerController
@@ -17,8 +17,8 @@ class AchievementTicketsPagerAdapter(
     override fun configureRouter(router: Router, position: Int) {
         if (!router.hasRootController()) {
             router.root = when (sections[position]) {
-                AchievementTicketsSection.TOTAL_EARNED -> TotalEarnedController()
-                AchievementTicketsSection.AVAILABLE -> AvailableController()
+                AchievementTicketsSection.TOTAL_EARNED -> TotalEarnedTicketsController()
+                AchievementTicketsSection.AVAILABLE -> AvailableTicketsController()
             }
         }
     }
